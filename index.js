@@ -9,10 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 
-
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.swu9d.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ndy3clf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -34,6 +32,21 @@ async function run() {
         const result = await productCollection.find().toArray();
         res.send(result);
     })
+
+    app.get('/productsPage', async(req, res)=>{
+      const currentPage = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit)
+      const totalProducts = await productCollection.countDocuments();
+      const result = await productCollection.find()
+        .skip((currentPage - 1) * limit)
+        .limit(limit)
+        .toArray()
+      // console.log(currentPage, limit, totalProducts, result);
+      res.send({
+        totalPages: Math.ceil(totalProducts/ limit),
+        data: result,
+      })
+    }) 
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
